@@ -24,7 +24,6 @@ pub struct Symbol(pub &'static str);
 impl Symbol {
     pub fn new(s: &str) -> Self {
         if let Some(sym) = Self::get_interned(s) {
-            println!("reusing {s} at {sym:p}");
             return Symbol(sym);
         }
 
@@ -35,7 +34,6 @@ impl Symbol {
     }
     pub fn from_static(sym: &'static str) -> Self {
         if let Some(sym) = Self::get_interned(sym) {
-            println!("reusing {sym} at {sym:p}");
             return Symbol(sym);
         }
 
@@ -52,7 +50,6 @@ impl Symbol {
     }
 
     fn set_interned(sym: &'static str) {
-        println!("creating new {sym} at {sym:p}");
         SYMBOLS
             .write()
             .expect("could not write to symbol registry")

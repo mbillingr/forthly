@@ -77,7 +77,6 @@ impl Interpreter {
     }
 
     pub fn exec(&mut self, ops: &[Op]) -> Result<()> {
-        println!("exec {ops:?}");
         let mut ops = ops.iter();
         while let Some(op) = ops.next() {
             match op {
@@ -133,12 +132,6 @@ impl Interpreter {
             }
 
             for (e, s) in effect.pre.iter().rev().zip(self.main_stack.iter().rev()) {
-                println!(
-                    "{e:?} {s:?}, {}, {:p}, {:p}",
-                    s.get_type() == *e,
-                    e.0,
-                    s.get_type().0
-                );
                 if e.is_type() && s.get_type() != *e {
                     continue 'method;
                 }
