@@ -119,6 +119,13 @@ fn integer_primitives(e: &mut HashMap<Symbol, Binding>) {
         Ok(())
     });
 
+    primitive(e, "%ii<", |intp| {
+        let b = intp.pop_int()?;
+        let a = intp.pop_int()?;
+        intp.push_bool(a < b);
+        Ok(())
+    });
+
     primitive(e, "%ii+", |intp| {
         let b = intp.pop_int()?;
         let a = intp.pop_int()?;
@@ -158,6 +165,13 @@ fn float_primitives(e: &mut HashMap<Symbol, Binding>) {
         let b = intp.pop_flt()?;
         let a = intp.pop_flt()?;
         intp.push_bool(a == b);
+        Ok(())
+    });
+
+    primitive(e, "%ff<", |intp| {
+        let b = intp.pop_flt()?;
+        let a = intp.pop_flt()?;
+        intp.push_bool(a < b);
         Ok(())
     });
 

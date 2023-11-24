@@ -224,6 +224,7 @@ impl Interpreter {
         let doc;
         if let Some(Op::Literal(Value::Str(d))) = body.first() {
             doc = d.clone();
+            body.remove(0);
         } else {
             doc = Arc::new("".to_string());
         }
