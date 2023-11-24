@@ -1,6 +1,7 @@
 use crate::interpreter::{Op, StackEffect};
 use crate::value::Value;
 use std::fmt::{Display, Formatter};
+use std::sync::Arc;
 
 impl Display for Value {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
@@ -39,5 +40,19 @@ impl Display for StackEffect {
         }
 
         write!(f, " )")
+    }
+}
+
+pub struct DisplayBlock<'a>(pub &'a[Op]);
+impl Display for DisplayBlock<'_> {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        let mut ops = self.0.iter();
+        if let Some(op) = ops.next() {
+            write!(f, "{op}")?;
+        }
+        for op in ops {
+            write!(f, " {op}")?;
+        }
+        Ok(())
     }
 }

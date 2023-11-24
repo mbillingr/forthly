@@ -1,8 +1,10 @@
 use crate::default_env::default_env;
 use crate::errors::Result;
+use crate::serialize::DisplayBlock;
 use crate::symbol::Symbol;
 use crate::value::Value;
 use std::collections::HashMap;
+use std::io::Write;
 use std::sync::{Arc, RwLock};
 
 pub trait ExecutionContext {
@@ -180,20 +182,46 @@ impl Interpreter {
             },
         ))
     }
+
+    pub fn log(&self, line: &str) {
+        let f = match std::fs::OpenOptions::new()
+            .create(true)
+            .append(true)
+            .open("session.forth")
+        {
+            Err(e) => println!("WARNING: could not open session file: {e}"),
+            Ok(mut f) => {
+                if let Err(e) = writeln!(f, "{}", line) {
+                    println!("WARNING: could not write to session file: {e}")
+                }
+            }
+        };
+    }
 }
 
 impl ExecutionContext for Interpreter {
     fn define_word<'a>(&mut self, ops: &mut impl Iterator<Item = &'a Op>) -> Result<()> {
         let (name, method) = self.parse_func(ops)?;
 
-        match self
+        let logline = match self
             .env
             .entry(name)
             .or_insert(Binding::Composite(Arc::new(RwLock::new(vec![]))))
         {
             Binding::Primitive(_) => return Err(format!("cannot redefine primitive {name}")),
-            Binding::Composite(methods) => methods.write().unwrap().push(method),
-        }
+            Binding::Composite(methods) => {
+                let logline = format!(
+                    ": {} {} {} ;",
+                    name,
+                    method.effect,
+                    DisplayBlock(&method.body)
+                );
+                methods.write().unwrap().push(method);
+                logline
+            }
+        };
+
+        self.log(&logline);
 
         Ok(())
     }
