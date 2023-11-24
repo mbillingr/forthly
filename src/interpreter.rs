@@ -24,6 +24,14 @@ pub enum Op {
 }
 
 impl Interpreter {
+    pub fn new() -> Self {
+        Interpreter {
+            main_stack: vec![],
+            secondary_stack: vec![],
+            env: Default::default(),
+        }
+    }
+
     pub fn exec(&mut self, ops: &[Op]) {
         for op in ops {
             match op {
