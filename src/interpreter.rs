@@ -254,9 +254,17 @@ impl Interpreter {
             }
         }
 
+        let doc = doc.unwrap_or_else(|| Arc::new("".to_string()));
+
+        let mut logline = format!(":t {name} {doc:?} ");
+        for ty in &types {
+            logline = format!("{logline} {ty}")
+        }
+        logline += " ;";
+
         let method = Method {
             body: vec![Op::Literal(Value::Symbol(name)), Op::Tuple(types.len() + 1)].into(),
-            doc: doc.unwrap_or_else(|| Arc::new("".to_string())),
+            doc,
             effect: Arc::new(StackEffect {
                 pre: types.clone(),
                 post: vec![name],
@@ -267,6 +275,8 @@ impl Interpreter {
             name,
             Binding::Composite(Arc::new(RwLock::new(vec![method]))),
         );
+
+        self.log(&logline);
 
         Ok(())
     }
