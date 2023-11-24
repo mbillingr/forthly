@@ -26,6 +26,7 @@ fn parse_op(token: &str) -> Result<Op> {
     Ok(match token {
         ";" => Op::End,
         ":" => Op::BeginDef,
+        ":t" => Op::BeginTypeDef,
         _ if token.starts_with('"') => {
             Op::Literal(Value::Str(token.trim_matches('"').to_string().into()))
         }

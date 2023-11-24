@@ -1,10 +1,11 @@
 use crate::default_env::default_env;
 use crate::errors::Result;
+use crate::parser::parse;
 use crate::serialize::DisplayBlock;
 use crate::symbol::Symbol;
 use crate::value::Value;
 use std::collections::HashMap;
-use std::io::Write;
+use std::io::{BufReader, Read, Write};
 use std::sync::{Arc, RwLock};
 
 pub trait ExecutionContext {
@@ -12,9 +13,10 @@ pub trait ExecutionContext {
 }
 
 pub struct Interpreter {
-    main_stack: Vec<Value>,
-    secondary_stack: Vec<Value>,
-    env: HashMap<Symbol, Binding>,
+    enable_log: bool,
+    pub main_stack: Vec<Value>,
+    pub secondary_stack: Vec<Value>,
+    pub env: HashMap<Symbol, Binding>,
 }
 
 #[derive(Debug)]
@@ -25,16 +27,19 @@ pub enum Binding {
 
 #[derive(Debug)]
 pub struct Method {
-    effect: Arc<StackEffect>,
-    body: Arc<[Op]>,
+    pub effect: Arc<StackEffect>,
+    pub doc: Arc<String>,
+    pub body: Arc<[Op]>,
 }
 
 #[derive(Clone, Debug)]
 pub enum Op {
     Literal(Value),
     Symbol(Symbol),
+    Tuple(usize),
 
     BeginDef,
+    BeginTypeDef,
     End,
 
     Effect(Arc<StackEffect>),
@@ -48,17 +53,22 @@ pub struct StackEffect {
 
 impl Default for Interpreter {
     fn default() -> Self {
-        Interpreter {
+        let mut intp = Interpreter {
+            enable_log: false,
             main_stack: vec![],
             secondary_stack: vec![],
             env: default_env(),
-        }
+        };
+        intp.restore();
+        intp.enable_log = true;
+        intp
     }
 }
 
 impl Interpreter {
     pub fn new() -> Self {
         Interpreter {
+            enable_log: true,
             main_stack: vec![],
             secondary_stack: vec![],
             env: Default::default(),
@@ -80,8 +90,17 @@ impl Interpreter {
                         self.exec(&body)?;
                     }
                 },
+                Op::Tuple(n) => {
+                    let mut tuple = vec![Value::Int(0); *n];
+                    tuple[0] = self.pop()?;
+                    for i in (1..*n).rev() {
+                        tuple[i] = self.pop()?;
+                    }
+                    self.push(Value::Tuple(tuple.into()));
+                }
                 Op::End => return Err(format!("Unexpected {}", op)),
                 Op::BeginDef => self.define_word(&mut ops)?,
+                Op::BeginTypeDef => self.define_type(&mut ops)?,
                 _ => todo!("{op:?}"),
             }
         }
@@ -89,7 +108,7 @@ impl Interpreter {
     }
 
     fn find_matching_method(&self, methods: &[Method]) -> Result<Arc<[Op]>> {
-        'method: for Method { effect, body } in methods.iter().rev() {
+        'method: for Method { effect, body, .. } in methods.iter().rev() {
             if effect.pre.len() > self.main_stack.len() {
                 continue;
             }
@@ -123,6 +142,10 @@ impl Interpreter {
             .ok_or_else(|| format!("Pop from empty stack"))
     }
 
+    pub fn pop_bool(&mut self) -> Result<bool> {
+        self.pop()?.expect_bool()
+    }
+
     pub fn pop_int(&mut self) -> Result<i64> {
         self.pop()?.expect_int()
     }
@@ -137,6 +160,11 @@ impl Interpreter {
 
     pub fn push(&mut self, value: Value) {
         self.main_stack.push(value)
+    }
+
+    pub fn push_bool(&mut self, value: bool) {
+        self.main_stack
+            .push(if value { Value::True } else { Value::False })
     }
 
     pub fn push_int(&mut self, value: i64) {
@@ -174,17 +202,68 @@ impl Interpreter {
             }
         }
 
+        let doc;
+        if let Some(Op::Literal(Value::Str(d))) = body.first() {
+            doc = d.clone();
+        } else {
+            doc = Arc::new("".to_string());
+        }
+
         Ok((
             name,
             Method {
                 effect,
+                doc,
                 body: body.into(),
             },
         ))
     }
 
+    fn define_type<'a>(&mut self, ops: &mut impl Iterator<Item = &'a Op>) -> Result<()> {
+        let name = match ops.next() {
+            Some(Op::Symbol(Symbol(name))) if name.starts_with(':') || name.starts_with('%') || !name.starts_with(char::is_uppercase) => {
+                return Err(format!("Type definitions may not start with : or % and must start with an upper case letter"))
+            }
+            Some(Op::Symbol(name)) => *name,
+            _ => return Err(format!("Expected type name")),
+        };
+
+        let mut doc = None;
+
+        let mut types = vec![];
+        loop {
+            match ops.next() {
+                None => return Err(format!("Undelimited type definition")),
+                Some(Op::End) => break,
+                Some(Op::Literal(Value::Str(d))) => doc = Some(d.clone()),
+                Some(Op::Symbol(ty)) => types.push(*ty),
+                Some(other) => return Err(format!("Invalid type {other:?}")),
+            }
+        }
+
+        let method = Method {
+            body: vec![Op::Literal(Value::Symbol(name)), Op::Tuple(types.len() + 1)].into(),
+            doc: doc.unwrap_or_else(|| Arc::new("".to_string())),
+            effect: Arc::new(StackEffect {
+                pre: types.clone(),
+                post: vec![name],
+            }),
+        };
+
+        self.env.insert(
+            name,
+            Binding::Composite(Arc::new(RwLock::new(vec![method]))),
+        );
+
+        Ok(())
+    }
+
     pub fn log(&self, line: &str) {
-        let f = match std::fs::OpenOptions::new()
+        if !self.enable_log {
+            return;
+        }
+
+        match std::fs::OpenOptions::new()
             .create(true)
             .append(true)
             .open("session.forth")
@@ -196,6 +275,21 @@ impl Interpreter {
                 }
             }
         };
+    }
+
+    pub fn restore(&mut self) {
+        let src = match std::fs::OpenOptions::new().read(true).open("session.forth") {
+            Err(_) => return,
+            Ok(mut f) => {
+                let mut src = String::new();
+                f.read_to_string(&mut src)
+                    .expect("Error reading from session file");
+                src
+            }
+        };
+
+        let ops = parse(&src).unwrap();
+        self.exec(&ops).unwrap();
     }
 }
 

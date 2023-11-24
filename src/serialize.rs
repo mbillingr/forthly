@@ -6,9 +6,13 @@ use std::sync::Arc;
 impl Display for Value {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         match self {
+            Value::True => write!(f, "true"),
+            Value::False => write!(f, "false"),
             Value::Int(x) => write!(f, "{x}"),
             Value::Flt(x) => write!(f, "{x}"),
             Value::Str(x) => write!(f, "{x:?}"),
+            Value::Symbol(s) => write!(f, "{s}"),
+            Value::Tuple(fields) => unimplemented!(),
         }
     }
 }
@@ -18,7 +22,9 @@ impl Display for Op {
         match self {
             Op::Literal(value) => value.fmt(f),
             Op::Symbol(name) => name.fmt(f),
+            Op::Tuple(len) => unimplemented!(),
             Op::BeginDef => write!(f, ":"),
+            Op::BeginTypeDef => write!(f, ":t"),
             Op::End => write!(f, ";"),
             Op::Effect(effect) => effect.fmt(f),
         }
@@ -43,7 +49,7 @@ impl Display for StackEffect {
     }
 }
 
-pub struct DisplayBlock<'a>(pub &'a[Op]);
+pub struct DisplayBlock<'a>(pub &'a [Op]);
 impl Display for DisplayBlock<'_> {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         let mut ops = self.0.iter();

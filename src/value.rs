@@ -4,17 +4,39 @@ use std::sync::Arc;
 
 #[derive(Clone, Debug)]
 pub enum Value {
+    True,
+    False,
     Int(i64),
     Flt(f64),
     Str(Arc<String>),
+    Symbol(Symbol),
+    Tuple(Arc<Vec<Value>>),
 }
 
 impl Value {
     pub fn get_type(&self) -> Symbol {
         match self {
+            Value::True => Symbol::from_static("Bln"),
+            Value::False => Symbol::from_static("Bln"),
             Value::Int(_) => Symbol::from_static("Int"),
             Value::Flt(_) => Symbol::from_static("Flt"),
             Value::Str(_) => Symbol::from_static("Str"),
+            Value::Symbol(_) => Symbol::from_static("Sym"),
+            Value::Tuple(fields) => match fields.as_slice() {
+                [Value::Symbol(tag), ..] => tag.clone(),
+                _ => panic!("invalid tuple"),
+            },
+        }
+    }
+
+    pub fn expect_bool(self) -> Result<bool> {
+        match self {
+            Value::True => Ok(true),
+            Value::False => Ok(false),
+            _ => Err(format!(
+                "Found a {} where Bln was expected",
+                self.get_type()
+            )),
         }
     }
 

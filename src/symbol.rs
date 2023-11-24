@@ -18,7 +18,7 @@ lazy_static! {
     };
 }
 
-#[derive(Clone, Copy, Debug, Eq, Hash)]
+#[derive(Clone, Copy, Debug, Eq, Hash, Ord, PartialOrd)]
 pub struct Symbol(pub &'static str);
 
 impl Symbol {
@@ -70,7 +70,6 @@ impl Symbol {
 
 impl PartialEq for Symbol {
     fn eq(&self, other: &Self) -> bool {
-        println!("{} at {:p} == {} at {:p}", self, self.0, other, other.0);
         std::ptr::eq(self.0, other.0)
     }
 }
