@@ -21,6 +21,12 @@ fn parse_op(token: &str) -> Result<Op> {
         _ if token.starts_with('"') => {
             Op::Literal(Value::Str(token.trim_matches('"').to_string().into()))
         }
+        _ if token.starts_with('#') => Op::Select(
+            token
+                .trim_matches('#')
+                .parse()
+                .map_err(|_| "# must be followed by a number (select operator)")?,
+        ),
         _ => {
             if let Ok(x) = token.parse() {
                 Op::Literal(Value::Int(x))

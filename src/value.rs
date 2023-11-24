@@ -72,4 +72,24 @@ impl Value {
             )),
         }
     }
+
+    pub fn expect_symbol(self) -> Result<Symbol> {
+        match self {
+            Value::Symbol(s) => Ok(s),
+            _ => Err(format!(
+                "Found a {} where Sym was expected",
+                self.get_type()
+            )),
+        }
+    }
+
+    pub fn expect_tuple(self) -> Result<Arc<Vec<Value>>> {
+        match self {
+            Value::Tuple(x) => Ok(x),
+            _ => Err(format!(
+                "Found a {} where Tuple was expected",
+                self.get_type()
+            )),
+        }
+    }
 }

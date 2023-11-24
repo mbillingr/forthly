@@ -37,6 +37,7 @@ pub enum Op {
     Literal(Value),
     Symbol(Symbol),
     Tuple(usize),
+    Select(usize),
     If,
 
     BeginDef,
@@ -97,6 +98,10 @@ impl Interpreter {
                         tuple[i] = self.pop()?;
                     }
                     self.push(Value::Tuple(tuple.into()));
+                }
+                Op::Select(i) => {
+                    let tuple = self.pop_tuple()?;
+                    self.push(tuple[*i].clone());
                 }
                 Op::If => {
                     let cond = self.pop_bool()?;
@@ -168,6 +173,14 @@ impl Interpreter {
 
     pub fn pop_str(&mut self) -> Result<Arc<String>> {
         self.pop()?.expect_string()
+    }
+
+    pub fn pop_sym(&mut self) -> Result<Symbol> {
+        self.pop()?.expect_symbol()
+    }
+
+    pub fn pop_tuple(&mut self) -> Result<Arc<Vec<Value>>> {
+        self.pop()?.expect_tuple()
     }
 
     pub fn push(&mut self, value: Value) {

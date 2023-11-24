@@ -29,6 +29,7 @@ impl Display for Op {
             Op::Literal(value) => value.fmt(f),
             Op::Symbol(name) => name.fmt(f),
             Op::Tuple(_) => unimplemented!(),
+            Op::Select(i) => write!(f, "#{i}"),
             Op::If => write!(f, "if"),
             Op::BeginDef => write!(f, ":"),
             Op::BeginTypeDef => write!(f, ":t"),

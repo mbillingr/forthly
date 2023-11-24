@@ -13,6 +13,7 @@ pub fn default_env() -> HashMap<Symbol, Binding> {
     boolean_primitives(e);
     float_primitives(e);
     string_primitives(e);
+    symbol_primitives(e);
 
     env
 }
@@ -47,8 +48,23 @@ fn housekeeping_primitives(e: &mut HashMap<Symbol, Binding>) {
 }
 
 fn stackop_primitives(e: &mut HashMap<Symbol, Binding>) {
+    primitive(e, "%>>", |intp| {
+        let x = intp.pop()?;
+        intp.secondary_stack.push(x);
+        Ok(())
+    });
+
+    primitive(e, "%<<", |intp| {
+        let x = intp
+            .secondary_stack
+            .pop()
+            .ok_or_else(|| format!("pop from empty second stack"))?;
+        intp.push(x);
+        Ok(())
+    });
+
     primitive(e, "%drop", |intp| {
-        let _ = intp.pop();
+        let _ = intp.pop()?;
         Ok(())
     });
 
@@ -91,14 +107,14 @@ fn boolean_primitives(e: &mut HashMap<Symbol, Binding>) {
         Ok(())
     });
 
-    primitive(e, "%ii&", |intp| {
+    primitive(e, "%bb&", |intp| {
         let b = intp.pop_bool()?;
         let a = intp.pop_bool()?;
         intp.push_bool(a && b);
         Ok(())
     });
 
-    primitive(e, "%ii|", |intp| {
+    primitive(e, "%bb|", |intp| {
         let b = intp.pop_bool()?;
         let a = intp.pop_bool()?;
         intp.push_bool(a || b);
@@ -213,6 +229,20 @@ fn string_primitives(e: &mut HashMap<Symbol, Binding>) {
     primitive(e, "%ss=", |intp| {
         let b = intp.pop_str()?;
         let a = intp.pop_str()?;
+        intp.push_bool(a == b);
+        Ok(())
+    });
+}
+
+fn symbol_primitives(e: &mut HashMap<Symbol, Binding>) {
+    primitive(e, "%'.", |intp| {
+        println!("{:?}", intp.pop_sym()?);
+        Ok(())
+    });
+
+    primitive(e, "%''=", |intp| {
+        let b = intp.pop_sym()?;
+        let a = intp.pop_sym()?;
         intp.push_bool(a == b);
         Ok(())
     });
