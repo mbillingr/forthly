@@ -134,6 +134,22 @@ impl Interpreter {
         self.pop()?.expect_string()
     }
 
+    pub fn push(&mut self, value: Value) {
+        self.main_stack.push(value)
+    }
+
+    pub fn push_int(&mut self, value: i64) {
+        self.main_stack.push(Value::Int(value))
+    }
+
+    pub fn push_flt(&mut self, value: f64) {
+        self.main_stack.push(Value::Flt(value))
+    }
+
+    pub fn push_str(&mut self, value: String) {
+        self.main_stack.push(Value::Str(Arc::new(value)))
+    }
+
     fn parse_func<'a>(&self, ops: &mut impl Iterator<Item = &'a Op>) -> Result<(Symbol, Method)> {
         let name = match ops.next() {
             Some(Op::Symbol(Symbol(name))) if name.starts_with(':') || name.starts_with('%') => {

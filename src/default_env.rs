@@ -17,6 +17,72 @@ pub fn default_env() -> HashMap<Symbol, Binding> {
         Ok(())
     });
 
+    primitive(e, "%f.", |intp| {
+        println!("{}", intp.pop_flt()?);
+        Ok(())
+    });
+
+    primitive(e, "%s.", |intp| {
+        println!("{}", intp.pop_str()?);
+        Ok(())
+    });
+
+    primitive(e, "%ii+", |intp| {
+        let b = intp.pop_int()?;
+        let a = intp.pop_int()?;
+        intp.push_int(a + b);
+        Ok(())
+    });
+
+    primitive(e, "%ff+", |intp| {
+        let b = intp.pop_flt()?;
+        let a = intp.pop_flt()?;
+        intp.push_flt(a + b);
+        Ok(())
+    });
+
+    primitive(e, "%ii-", |intp| {
+        let b = intp.pop_int()?;
+        let a = intp.pop_int()?;
+        intp.push_int(a - b);
+        Ok(())
+    });
+
+    primitive(e, "%ff-", |intp| {
+        let b = intp.pop_flt()?;
+        let a = intp.pop_flt()?;
+        intp.push_flt(a - b);
+        Ok(())
+    });
+
+    primitive(e, "%ii*", |intp| {
+        let b = intp.pop_int()?;
+        let a = intp.pop_int()?;
+        intp.push_int(a * b);
+        Ok(())
+    });
+
+    primitive(e, "%ff*", |intp| {
+        let b = intp.pop_flt()?;
+        let a = intp.pop_flt()?;
+        intp.push_flt(a * b);
+        Ok(())
+    });
+
+    primitive(e, "%ii/", |intp| {
+        let b = intp.pop_int()?;
+        let a = intp.pop_int()?;
+        intp.push_int(a / b);
+        Ok(())
+    });
+
+    primitive(e, "%ff/", |intp| {
+        let b = intp.pop_flt()?;
+        let a = intp.pop_flt()?;
+        intp.push_flt(a / b);
+        Ok(())
+    });
+
     env
 }
 
