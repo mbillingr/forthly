@@ -33,7 +33,6 @@ pub enum Op {
     Symbol(Symbol),
 
     BeginDef,
-    BeginMethod,
     End,
 
     Effect(Arc<StackEffect>),

@@ -18,7 +18,6 @@ impl Display for Op {
             Op::Literal(value) => value.fmt(f),
             Op::Symbol(name) => name.fmt(f),
             Op::BeginDef => write!(f, ":"),
-            Op::BeginMethod => write!(f, ":>"),
             Op::End => write!(f, ";"),
             Op::Effect(effect) => effect.fmt(f),
         }
