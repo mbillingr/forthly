@@ -5,7 +5,7 @@ use crate::serialize::DisplayBlock;
 use crate::symbol::Symbol;
 use crate::value::Value;
 use std::collections::HashMap;
-use std::io::{BufReader, Read, Write};
+use std::io::{Read, Write};
 use std::sync::{Arc, RwLock};
 
 pub trait ExecutionContext {
@@ -37,6 +37,7 @@ pub enum Op {
     Literal(Value),
     Symbol(Symbol),
     Tuple(usize),
+    If,
 
     BeginDef,
     BeginTypeDef,
@@ -98,6 +99,16 @@ impl Interpreter {
                     }
                     self.push(Value::Tuple(tuple.into()));
                 }
+                Op::If => {
+                    let cond = self.pop_bool()?;
+                    let yes = Self::require_branch(ops.next())?;
+                    let no = Self::require_branch(ops.next())?;
+                    if cond {
+                        self.exec(yes)?;
+                    } else {
+                        self.exec(no)?;
+                    }
+                }
                 Op::End => return Err(format!("Unexpected {}", op)),
                 Op::BeginDef => self.define_word(&mut ops)?,
                 Op::BeginTypeDef => self.define_type(&mut ops)?,
@@ -105,6 +116,14 @@ impl Interpreter {
             }
         }
         Ok(())
+    }
+
+    fn require_branch(op: Option<&Op>) -> Result<&[Op]> {
+        match op {
+            None => Err("Unexpected end".to_string()),
+            Some(Op::Literal(Value::Block(ops))) => Ok(ops),
+            Some(_) => Err("Expected block literal".to_string()),
+        }
     }
 
     fn find_matching_method(&self, methods: &[Method]) -> Result<Arc<[Op]>> {

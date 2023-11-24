@@ -1,4 +1,5 @@
 use crate::errors::Result;
+use crate::interpreter::Op;
 use crate::symbol::Symbol;
 use std::sync::Arc;
 
@@ -11,6 +12,7 @@ pub enum Value {
     Str(Arc<String>),
     Symbol(Symbol),
     Tuple(Arc<Vec<Value>>),
+    Block(Arc<[Op]>),
 }
 
 impl Value {
@@ -22,6 +24,7 @@ impl Value {
             Value::Flt(_) => Symbol::from_static("Flt"),
             Value::Str(_) => Symbol::from_static("Str"),
             Value::Symbol(_) => Symbol::from_static("Sym"),
+            Value::Block(_) => Symbol::from_static("Ops"),
             Value::Tuple(fields) => match fields.as_slice() {
                 [Value::Symbol(tag), ..] => tag.clone(),
                 _ => panic!("invalid tuple"),

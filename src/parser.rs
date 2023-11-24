@@ -7,19 +7,7 @@ use std::sync::Arc;
 pub fn parse(src: &str) -> Result<Vec<Op>> {
     let mut tokens = Tokenizer { input: src };
 
-    let mut ops = vec![];
-    while let Some(token) = tokens.next() {
-        if token == "" {
-            continue;
-        } else if token == "(" {
-            ops.push(parse_stack_effect(&mut tokens)?);
-        } else {
-            let op = parse_op(token)?;
-            ops.push(op);
-        }
-    }
-
-    Ok(ops)
+    parse_ops(&mut tokens, &[], true)
 }
 
 fn parse_op(token: &str) -> Result<Op> {
@@ -27,6 +15,9 @@ fn parse_op(token: &str) -> Result<Op> {
         ";" => Op::End,
         ":" => Op::BeginDef,
         ":t" => Op::BeginTypeDef,
+        "true" => Op::Literal(Value::True),
+        "false" => Op::Literal(Value::False),
+        "if" => Op::If,
         _ if token.starts_with('"') => {
             Op::Literal(Value::Str(token.trim_matches('"').to_string().into()))
         }
@@ -40,6 +31,34 @@ fn parse_op(token: &str) -> Result<Op> {
             }
         }
     })
+}
+
+fn parse_block<'a>(tokens: &mut impl Iterator<Item = &'a str>) -> Result<Op> {
+    let ops = parse_ops(tokens, &["]"], false)?;
+    Ok(Op::Literal(Value::Block(ops.into())))
+}
+
+fn parse_ops<'a>(
+    tokens: &mut impl Iterator<Item = &'a str>,
+    delimiters: &[&str],
+    accept_eof: bool,
+) -> Result<Vec<Op>> {
+    let mut ops = vec![];
+    loop {
+        match next_token(tokens) {
+            Err(_) if accept_eof => break,
+            Err(e) => return Err(e),
+            Ok("") => continue,
+            Ok("(") => ops.push(parse_stack_effect(tokens)?),
+            Ok("[") => ops.push(parse_block(tokens)?),
+            Ok(token) if delimiters.contains(&token) => break,
+            Ok(token) => {
+                let op = parse_op(token)?;
+                ops.push(op);
+            }
+        }
+    }
+    Ok(ops)
 }
 
 fn parse_stack_effect<'a>(tokens: &mut impl Iterator<Item = &'a str>) -> Result<Op> {

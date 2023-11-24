@@ -1,7 +1,6 @@
 use crate::interpreter::{Op, StackEffect};
 use crate::value::Value;
 use std::fmt::{Display, Formatter};
-use std::sync::Arc;
 
 impl Display for Value {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
@@ -12,7 +11,14 @@ impl Display for Value {
             Value::Flt(x) => write!(f, "{x}"),
             Value::Str(x) => write!(f, "{x:?}"),
             Value::Symbol(s) => write!(f, "{s}"),
-            Value::Tuple(fields) => unimplemented!(),
+            Value::Tuple(_) => unimplemented!(),
+            Value::Block(ops) => {
+                write!(f, "[")?;
+                for op in ops.iter() {
+                    write!(f, " {op}")?;
+                }
+                write!(f, " ]")
+            }
         }
     }
 }
@@ -22,7 +28,8 @@ impl Display for Op {
         match self {
             Op::Literal(value) => value.fmt(f),
             Op::Symbol(name) => name.fmt(f),
-            Op::Tuple(len) => unimplemented!(),
+            Op::Tuple(_) => unimplemented!(),
+            Op::If => write!(f, "if"),
             Op::BeginDef => write!(f, ":"),
             Op::BeginTypeDef => write!(f, ":t"),
             Op::End => write!(f, ";"),
