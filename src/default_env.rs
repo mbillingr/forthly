@@ -82,6 +82,15 @@ fn stackop_primitives(e: &mut HashMap<Symbol, Binding>) {
         Ok(())
     });
 
+    primitive(e, "%over", |intp| {
+        let b = intp.pop()?;
+        let a = intp.pop()?;
+        intp.push(a.clone());
+        intp.push(b);
+        intp.push(a);
+        Ok(())
+    });
+
     primitive(e, "%swap", |intp| {
         let b = intp.pop()?;
         let a = intp.pop()?;

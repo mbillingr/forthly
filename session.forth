@@ -34,6 +34,7 @@
 : dup ( x -- x x ) "Duplicate top value" %dup ;
 : swap ( a b -- b a ) "Swap the two top-most values on the stack" %swap ;
 : rot ( a b c -- b c a ) "Rotate the third value on the stack to the top" %rot ;
+: over ( a b -- a b a ) "Copy the second value on the stack" %over ;
 : dup2 ( a b -- a b a b ) swap dup rot dup rot swap ;
 : sqr ( x -- x ) "Square a number" dup * ;
 : sqrt ( Flt -- Flt ) "Square root" %fsqrt ;
