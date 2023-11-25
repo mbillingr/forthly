@@ -25,6 +25,11 @@ fn housekeeping_primitives(e: &mut HashMap<Symbol, Binding>) {
         Err(msg.to_string())
     });
 
+    primitive(e, "%apply", |intp| {
+        let ops = intp.pop_ops()?;
+        intp.exec(&ops)
+    });
+
     primitive(e, ":stacks", |intp| {
         println!("  Main Stack: {:?}", intp.main_stack);
         println!("Second Stack: {:?}", intp.secondary_stack);
@@ -276,6 +281,18 @@ fn float_primitives(e: &mut HashMap<Symbol, Binding>) {
     primitive(e, "%flog", |intp| {
         let x = intp.pop_flt()?;
         intp.push_flt(x.ln());
+        Ok(())
+    });
+
+    primitive(e, "%fsin", |intp| {
+        let x = intp.pop_flt()?;
+        intp.push_flt(x.sin());
+        Ok(())
+    });
+
+    primitive(e, "%fcos", |intp| {
+        let x = intp.pop_flt()?;
+        intp.push_flt(x.cos());
         Ok(())
     });
 }

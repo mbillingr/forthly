@@ -186,6 +186,10 @@ impl Interpreter {
         self.pop()?.expect_tuple()
     }
 
+    pub fn pop_ops(&mut self) -> Result<Arc<[Op]>> {
+        self.pop()?.expect_block()
+    }
+
     pub fn push(&mut self, value: Value) {
         self.main_stack.push(value)
     }

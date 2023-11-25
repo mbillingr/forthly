@@ -92,4 +92,14 @@ impl Value {
             )),
         }
     }
+
+    pub fn expect_block(self) -> Result<Arc<[Op]>> {
+        match self {
+            Value::Block(ops) => Ok(ops),
+            _ => Err(format!(
+                "Found a {} where Ops was expected",
+                self.get_type()
+            )),
+        }
+    }
 }
