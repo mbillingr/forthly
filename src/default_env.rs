@@ -34,14 +34,20 @@ fn housekeeping_primitives(e: &mut HashMap<Symbol, Binding>) {
         let mut names: Vec<_> = intp.env.keys().collect();
         names.sort();
         for name in names {
-            print!("{:>40} | ", name.to_string());
+            print!("{:>40} ", name.to_string());
             match &intp.env[name] {
-                Binding::Primitive(_) => {}
-                Binding::Composite(method) => {
-                    print!("{}", method.read().unwrap().last().unwrap().doc)
+                Binding::Primitive(_) => println!("|"),
+                Binding::Composite(methods) => {
+                    let methods = methods.read().unwrap();
+                    let n = methods.len();
+                    for (i, method) in methods.iter().enumerate() {
+                        println!("| {:>30} | {}", method.effect.to_string(), method.doc);
+                        if i < n - 1 {
+                            print!("{:<40} ", "")
+                        }
+                    }
                 }
             };
-            println!();
         }
         Ok(())
     });
@@ -90,6 +96,21 @@ fn stackop_primitives(e: &mut HashMap<Symbol, Binding>) {
         intp.push(b);
         intp.push(c);
         intp.push(a);
+        Ok(())
+    });
+}
+
+fn generic_primitives(e: &mut HashMap<Symbol, Binding>) {
+    primitive(e, "%.", |intp| {
+        let x = intp.pop()?;
+        println!("{x:?}");
+        Ok(())
+    });
+
+    primitive(e, "%.=", |intp| {
+        let b = intp.pop()?;
+        let a = intp.pop()?;
+        intp.push_bool(a == b);
         Ok(())
     });
 }

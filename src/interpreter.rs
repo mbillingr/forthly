@@ -32,7 +32,7 @@ pub struct Method {
     pub body: Arc<[Op]>,
 }
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, PartialEq)]
 pub enum Op {
     Literal(Value),
     Symbol(Symbol),
@@ -47,7 +47,7 @@ pub enum Op {
     Effect(Arc<StackEffect>),
 }
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub struct StackEffect {
     pub pre: Vec<Symbol>,
     pub post: Vec<Symbol>,

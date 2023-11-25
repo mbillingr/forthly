@@ -3,7 +3,7 @@ use crate::interpreter::Op;
 use crate::symbol::Symbol;
 use std::sync::Arc;
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, PartialEq)]
 pub enum Value {
     True,
     False,
