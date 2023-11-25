@@ -37,6 +37,7 @@
 : dup2 ( a b -- a b a b ) swap dup rot dup rot swap ;
 : fib ( Int -- Int ) "Compute the n-th fibonacci number" %dup 2 %ii< if [ %drop 1 ] [ %dup 1 %ii- fib %swap 2 %ii- fib %ii+ ] ;
 :t Complex "complex number"  Flt Flt ;
+: . ( Complex -- ) #2 swap #1 swap drop "%f+%fi" %fmt %println ;
 : tuck-real ( Complex -- Complex ) #1 >> ;
 : tuck-imag ( Complex -- Complex ) #2 >> ;
 : + ( Complex Complex -- Complex ) tuck-imag swap tuck-imag tuck-real drop tuck-real drop << << + << << + Complex ;

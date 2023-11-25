@@ -247,6 +247,10 @@ fn string_primitives(e: &mut HashMap<Symbol, Binding>) {
         println!("{:?}", intp.pop_str()?);
         Ok(())
     });
+    primitive(e, "%println", |intp| {
+        println!("{}", intp.pop_str()?);
+        Ok(())
+    });
 
     primitive(e, "%ss=", |intp| {
         let b = intp.pop_str()?;
@@ -254,6 +258,27 @@ fn string_primitives(e: &mut HashMap<Symbol, Binding>) {
         intp.push_bool(a == b);
         Ok(())
     });
+
+    primitive(e, "%fmt", |intp| {
+        let fmt_str = intp.pop_str()?;
+        let mut fmt_str = fmt_str.chars();
+        let mut str_out = String::new();
+        while let Some(ch) = fmt_str.next() {
+            if ch != '%' {
+                str_out.push(ch);
+                continue;
+            }
+            match fmt_str.next() {
+                Some('%') => str_out.push('%'),
+                Some('i') => str_out += &intp.pop_int()?.to_string(),
+                Some('f') => str_out += &intp.pop_flt()?.to_string(),
+                Some('s') => str_out += &intp.pop_str()?,
+                _ => {}
+            }
+        }
+        intp.push_str(str_out);
+        Ok(())
+    })
 }
 
 fn symbol_primitives(e: &mut HashMap<Symbol, Binding>) {
