@@ -9,6 +9,7 @@ pub fn default_env() -> HashMap<Symbol, Binding> {
 
     housekeeping_primitives(e);
     stackop_primitives(e);
+    generic_primitives(e);
     integer_primitives(e);
     boolean_primitives(e);
     float_primitives(e);

@@ -100,6 +100,9 @@ impl Interpreter {
                     self.push(Value::Tuple(tuple.into()));
                 }
                 Op::Select(i) => {
+                    let top = self.pop()?;
+                    self.push(top.clone());
+                    self.push(top);
                     let tuple = self.pop_tuple()?;
                     self.push(tuple[*i].clone());
                 }
