@@ -70,6 +70,17 @@ fn stackop_primitives(e: &mut HashMap<Symbol, Binding>) {
         Ok(())
     });
 
+    primitive(e, "%@", |intp| {
+        let idx = intp.pop_int()? as usize;
+        let x = intp
+            .secondary_stack
+            .get(intp.secondary_stack.len() - 1 - idx)
+            .ok_or_else(|| format!("index out of bounds"))?
+            .clone();
+        intp.push(x);
+        Ok(())
+    });
+
     primitive(e, "%drop", |intp| {
         let _ = intp.pop()?;
         Ok(())
