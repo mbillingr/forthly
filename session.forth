@@ -35,6 +35,8 @@
 : swap ( a b -- b a ) "Swap the two top-most values on the stack" %swap ;
 : rot ( a b c -- b c a ) "Rotate the third value on the stack to the top" %rot ;
 : dup2 ( a b -- a b a b ) swap dup rot dup rot swap ;
+: sqr ( x -- x ) "Square a number" dup * ;
+: sqrt ( Flt -- Flt ) "Square root" %fsqrt ;
 : fib ( Int -- Int ) "Compute the n-th fibonacci number" %dup 2 %ii< if [ %drop 1 ] [ %dup 1 %ii- fib %swap 2 %ii- fib %ii+ ] ;
 :t Complex "complex number"  Flt Flt ;
 : . ( Complex -- ) #2 swap #1 swap drop "%f+%fi" %fmt %println ;
@@ -43,3 +45,4 @@
 : + ( Complex Complex -- Complex ) tuck-imag swap tuck-imag tuck-real drop tuck-real drop << << + << << + Complex ;
 : - ( Complex Complex -- Complex ) tuck-imag swap tuck-imag tuck-real drop tuck-real drop << << - << << - Complex ;
 : * ( Complex Complex -- Complex ) tuck-imag swap tuck-real tuck-imag swap tuck-real tuck-imag swap tuck-imag tuck-real drop tuck-real drop << << * << << * - << << * << << * + Complex ;
+: abs ( Complex -- Flt ) "Complex magnitude" #1 sqr swap #2 sqr swap drop + sqrt ;

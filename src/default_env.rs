@@ -199,6 +199,12 @@ fn float_primitives(e: &mut HashMap<Symbol, Binding>) {
         Ok(())
     });
 
+    primitive(e, "%i->f", |intp| {
+        let x = intp.pop_int()?;
+        intp.push_flt(x as f64);
+        Ok(())
+    });
+
     primitive(e, "%ff=", |intp| {
         let b = intp.pop_flt()?;
         let a = intp.pop_flt()?;
@@ -238,6 +244,12 @@ fn float_primitives(e: &mut HashMap<Symbol, Binding>) {
         let b = intp.pop_flt()?;
         let a = intp.pop_flt()?;
         intp.push_flt(a / b);
+        Ok(())
+    });
+
+    primitive(e, "%fsqrt", |intp| {
+        let x = intp.pop_flt()?;
+        intp.push_flt(x.sqrt());
         Ok(())
     });
 }
