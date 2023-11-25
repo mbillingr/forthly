@@ -38,6 +38,7 @@
 : dup2 ( a b -- a b a b ) swap dup rot dup rot swap ;
 : sqr ( x -- x ) "Square a number" dup * ;
 : sqrt ( Flt -- Flt ) "Square root" %fsqrt ;
+: log ( Flt -- Flt ) "Square root" %flog ;
 : fib ( Int -- Int ) "Compute the n-th fibonacci number" %dup 2 %ii< if [ %drop 1 ] [ %dup 1 %ii- fib %swap 2 %ii- fib %ii+ ] ;
 :t Complex "complex number"  Flt Flt ;
 : f->c ( Flt -- Complex ) 0.0 Complex ;

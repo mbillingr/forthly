@@ -272,6 +272,12 @@ fn float_primitives(e: &mut HashMap<Symbol, Binding>) {
         intp.push_flt(x.sqrt());
         Ok(())
     });
+
+    primitive(e, "%flog", |intp| {
+        let x = intp.pop_flt()?;
+        intp.push_flt(x.ln());
+        Ok(())
+    });
 }
 
 fn string_primitives(e: &mut HashMap<Symbol, Binding>) {
